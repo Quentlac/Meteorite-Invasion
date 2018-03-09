@@ -15,7 +15,8 @@ class Arme {
 class Meteorite{
   int x;
   int y;
-  float vie = 50;
+  float vie = 2;
+  float vie_max = 2;
   
 }
 
@@ -54,6 +55,8 @@ void setup(){
     meteorite[i] = new Meteorite();
     meteorite[i].y = 0 - round(random(50,500));
     meteorite[i].x = round(random(10,490));
+    meteorite[i].vie = 2;
+    meteorite[i].vie_max = 2;
   } 
   
   for (int i = 0; i < 2000; i++) {
@@ -266,6 +269,17 @@ void affiche_meteorite(){
     fill(0);
     stroke(0);
     
+    if(meteorite[i].vie < meteorite[i].vie_max){
+      rect(meteorite[i].x - 25,meteorite[i].y - 10,20,5);
+      
+      fill(0,255,0);
+      if(meteorite[i].vie < 0)meteorite[i].vie = 0;
+      
+      rect(meteorite[i].x - 25,meteorite[i].y - 10,map(meteorite[i].vie,0,meteorite[i].vie_max,0,20),5);
+    }
+    
+    fill(0);
+    stroke(0);
     ellipse(meteorite[i].x,meteorite[i].y,20,20);
     
   }
@@ -294,13 +308,20 @@ void mv_meteorite(){
 }
 
 void disp_meteorite(){
+  println(level);
   for(int i = 0; i < nb_meteorite;i++){
     if(meteorite[i].y >= 480 || meteorite[i].vie <= 0){
+      if(meteorite[i].y >= 480){
+        vie_ville -= 25;
+      }
+      
       meteorite[i].y = 0 - round(random(50,500));
       meteorite[i].x = round(random(10,490));  
-      meteorite[i].vie = 50;
-      vie_ville -= 25;
-    }
+      
+      
+      meteorite[i].vie = round(random(1*(level+1),3*(level+1)));
+      meteorite[i].vie_max = meteorite[i].vie;
+     }
     
   }  
   
@@ -399,13 +420,21 @@ void affiche_balle(){
           if(x > meteorite[j].x - 15 && x < meteorite[j].x + 15){
             if(y > meteorite[j].y - 15 && y < meteorite[j].y + 15){ 
               balle[i].active = 0; 
-              meteorite[j].y = 0 - round(random(50,500));
-              meteorite[j].x = round(random(10,490));
+              if(arme[balle[i].arme].type == 1){
+                meteorite[j].vie -= 3;
+              }
+              if(arme[balle[i].arme].type == 2){
+                meteorite[j].vie -= 8;
+              }
+              if(arme[balle[i].arme].type == 3){
+                meteorite[j].vie -= 20;
+              }
               point++;
               score++;
               if(score%75 == 0){
                 nb_meteorite += 3;
                 level++;
+               
               }
             }
           }  
