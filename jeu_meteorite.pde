@@ -2,6 +2,7 @@
 Arme[] arme = new Arme[50];
 Meteorite[] meteorite = new Meteorite[1000];
 Balle[] balle = new Balle[2000];
+Bouclier[] bouclier = new Bouclier[20];
 
 class Arme {
   int x;
@@ -28,6 +29,17 @@ class Balle{
   
 }
 
+class Bouclier{
+  int x1;
+  int y1;
+  
+  int x2;
+  int y2;
+  
+  int vie = 0;
+  
+}
+
 int nb_balle = 0;
 
 int nb_arme = 0;
@@ -43,6 +55,12 @@ int score = 0;
 int level = 0;
 
 int vie_ville = 700;
+
+int cree_bouclier = 0;
+int nb_bouclier = 0;
+int n_bouclier = 0;
+
+int clique_inventaire = 0;
 
 void setup(){
   size(500,550);
@@ -63,6 +81,11 @@ void setup(){
     balle[i] = new Balle();
     
   } 
+  
+  for (int i = 0; i < 20; i++) {
+    bouclier[i] = new Bouclier();
+    
+  }
   
   
 }
@@ -91,6 +114,9 @@ void draw(){
   mv_balle();
   
   affiche_vie_ville();
+  
+  creation_bouclier();
+  affiche_bouclier();
   
   fill(0);
   textSize(20);
@@ -144,8 +170,10 @@ void affiche_inventaire(){
 }
 
 void selectionne_arme(){
+  if(mousePressed == false)clique_inventaire = 0;
   if(mousePressed == true){
     if(selection_arme == 0 && mouseY >= 500){
+      clique_inventaire = 1;
       selection_arme = mouseX / 166 + 1;
       if(selection_arme == 1 && point < 30){
         selection_arme = 0;  
@@ -163,30 +191,32 @@ void selectionne_arme(){
       
       
     }
+    else if(selection_arme != 0){
         
-    stroke(0);
-    fill(50);
-    rect(mouseX-5,mouseY,10,500-mouseY);  
-    
-    if(selection_arme == 1)fill(255,0,0);  
-    if(selection_arme == 2)fill(0,255,0); 
-    if(selection_arme == 3)fill(0,0,255); 
-    
-    for(int i = 0; i < nb_arme;i++){
-      if(mouseX + 25 > arme[i].x - 25 && mouseX - 25 < arme[i].x + 25){
-        if(mouseY + 25 > arme[i].y - 25 && mouseY - 25 < arme[i].y + 25){
-          stroke(255,0,0);  
+      stroke(0);
+      fill(50);
+      rect(mouseX-5,mouseY,10,500-mouseY);  
+      
+      if(selection_arme == 1)fill(255,0,0);  
+      if(selection_arme == 2)fill(0,255,0); 
+      if(selection_arme == 3)fill(0,0,255); 
+      
+      for(int i = 0; i < nb_arme;i++){
+        if(mouseX + 25 > arme[i].x - 25 && mouseX - 25 < arme[i].x + 25){
+          if(mouseY + 25 > arme[i].y - 25 && mouseY - 25 < arme[i].y + 25){
+            stroke(255,0,0);  
+          }
         }
       }
+      
+      ellipse(mouseX,mouseY,50,50);
+      
+      stroke(0);
     }
-    
-    ellipse(mouseX,mouseY,50,50);
-    
-    stroke(0);
   }
   
   if(mousePressed == false && selection_arme != 0){
-     
+    clique_inventaire = 0; 
     int libre = 1;
     for(int i = 0; i < nb_arme;i++){
       if(mouseX + 25 > arme[i].x - 25 && mouseX - 25 < arme[i].x + 25){
@@ -321,6 +351,20 @@ void disp_meteorite(){
       
       meteorite[i].vie = round(random(1*(level+1),3*(level+1)));
       meteorite[i].vie_max = meteorite[i].vie;
+     }
+     
+     for(int j = 0; j < 20;j++){
+       if(meteorite[i].x > bouclier[j].x1 && meteorite[i].x < bouclier[j].x2 && meteorite[i].y > bouclier[j].y1-2 && meteorite[i].y < bouclier[j].y1+10){
+         meteorite[i].y = 0 - round(random(50,500));
+         meteorite[i].x = round(random(10,490));  
+      
+      
+         meteorite[i].vie = round(random(1*(level+1),3*(level+1)));
+         meteorite[i].vie_max = meteorite[i].vie;  
+         bouclier[j].vie -= 5;
+         score++;
+       }
+       
      }
     
   }  
@@ -480,4 +524,83 @@ void affiche_barre_arme(){
     rect(arme[i].x-5,arme[i].y,10,500-arme[i].y);  
     
   }
+}
+
+void creation_bouclier(){
+  if(mousePressed == true && mouseY < 500 && selection_arme == 0 && clique_inventaire == 0){
+    if(cree_bouclier == 0){
+      for(int i = 0; i < 20;i++){
+        if(bouclier[i].vie <= 0){
+          n_bouclier = i;
+          i = 21;
+        } 
+      }
+      bouclier[n_bouclier].x1 = mouseX;  
+      bouclier[n_bouclier].y1 = mouseY;
+      cree_bouclier = 1;
+    }
+    else if(cree_bouclier == 1){
+      stroke(10,120,175);
+      int prix = abs(mouseX/10 - bouclier[n_bouclier].x1/10);
+      if(prix > point){
+        stroke(255,0,0);  
+      }
+      
+      textSize(20);
+      fill(0);
+      text("-"+prix,mouseX - 10,bouclier[n_bouclier].y1 - 10);
+      strokeWeight(7);
+      line(bouclier[n_bouclier].x1,bouclier[n_bouclier].y1,mouseX,bouclier[n_bouclier].y1);
+      strokeWeight(1);
+      
+    }      
+  }
+  
+  if(mousePressed == false && cree_bouclier == 1){
+    
+    int prix = abs(mouseX/10 - bouclier[n_bouclier].x1/10);
+    
+    if(prix <= point){
+      bouclier[n_bouclier].x2 = mouseX;  
+      bouclier[n_bouclier].y2 = bouclier[n_bouclier].y1;  
+      bouclier[n_bouclier].vie = 50; 
+    
+    
+      point -= prix;
+    
+      
+    }
+    else{
+      bouclier[n_bouclier].vie = 0;   
+      
+    }
+    cree_bouclier = 0;
+  }
+  
+}
+
+void affiche_bouclier(){
+  for(int i = 0; i < 20;i++){
+    if(bouclier[i].vie > 0){
+      stroke(10,120,175);
+      strokeWeight(7);
+      line(bouclier[i].x1,bouclier[i].y1,bouclier[i].x2,bouclier[i].y2);
+      strokeWeight(1);
+      
+      fill(0);
+      stroke(0);
+      
+      if(bouclier[i].vie < 50){
+        rect(bouclier[i].x1 - 10,bouclier[i].y1 - 10,20,5);
+        
+        fill(0,255,0);
+        if(bouclier[i].vie < 0)bouclier[i].vie = 0;
+        
+        rect(bouclier[i].x1 - 10,bouclier[i].y1 - 10,map(bouclier[i].vie,0,50,0,20),5);
+      }
+    }
+    
+  }
+  
+  
 }
