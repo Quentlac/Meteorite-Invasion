@@ -62,6 +62,14 @@ int n_bouclier = 0;
 
 int clique_inventaire = 0;
 
+String message = "Commencer par placer un canon pour vous défendre";
+
+int bouclier_mis_tuto = 0;
+
+int tmp_message = -1;
+
+int game_over = -1;
+
 void setup(){
   size(500,550);
   
@@ -117,6 +125,7 @@ void draw(){
   
   creation_bouclier();
   affiche_bouclier();
+  affiche_message();
   
   fill(0);
   textSize(20);
@@ -143,7 +152,9 @@ void draw(){
     println("Vous avez perdu");
     print("score: ");
     println(score);
-    while(true);  
+    if(game_over == -1){
+      game_over = 3;
+    }
   }
 }
 
@@ -176,17 +187,23 @@ void selectionne_arme(){
       clique_inventaire = 1;
       selection_arme = mouseX / 166 + 1;
       if(selection_arme == 1 && point < 30){
-        selection_arme = 0;  
+        selection_arme = 0;
+        message = "Mince!!!, vous n'avez pas assez de sous, détruiser les\nmétéorites pour en gagner ;)";
+        tmp_message = 1000;
       }
       
       if(selection_arme == 2 && point < 75){
-        selection_arme = 0;  
+        selection_arme = 0;
+        message = "Mince!!!, vous n'avez pas assez de sous, détruiser les\nmétéorites pour en gagner ;)";
+        tmp_message = 1000;
       }
       
       
       
       if(selection_arme == 3 && point < 400){
-        selection_arme = 0;  
+        selection_arme = 0;
+        message = "Mince!!!, vous n'avez pas assez de sous, détruiser les\nmétéorites pour en gagner ;)";
+        tmp_message = 1000;
       }
       
       
@@ -355,14 +372,16 @@ void disp_meteorite(){
      
      for(int j = 0; j < 20;j++){
        if(meteorite[i].x > bouclier[j].x1 && meteorite[i].x < bouclier[j].x2 && meteorite[i].y > bouclier[j].y1-2 && meteorite[i].y < bouclier[j].y1+10){
-         meteorite[i].y = 0 - round(random(50,500));
-         meteorite[i].x = round(random(10,490));  
-      
-      
-         meteorite[i].vie = round(random(1*(level+1),3*(level+1)));
-         meteorite[i].vie_max = meteorite[i].vie;  
-         bouclier[j].vie -= 5;
-         score++;
+         if(bouclier[j].vie > 0){
+           meteorite[i].y = 0 - round(random(50,500));
+           meteorite[i].x = round(random(10,490));  
+        
+        
+           meteorite[i].vie = round(random(1*(level+1),3*(level+1)));
+           meteorite[i].vie_max = meteorite[i].vie;  
+           bouclier[j].vie -= 5;
+           score++;
+         }
        }
        
      }
@@ -476,7 +495,7 @@ void affiche_balle(){
               point++;
               score++;
               if(score%75 == 0){
-                nb_meteorite += 3;
+                nb_meteorite += 2;
                 level++;
                
               }
@@ -561,12 +580,22 @@ void creation_bouclier(){
     int prix = abs(mouseX/10 - bouclier[n_bouclier].x1/10);
     
     if(prix <= point){
-      bouclier[n_bouclier].x2 = mouseX;  
+      
+      if(mouseX < bouclier[n_bouclier].x1){
+        bouclier[n_bouclier].x2 = bouclier[n_bouclier].x1;
+        bouclier[n_bouclier].x1 = mouseX;
+      }
+      else{
+        bouclier[n_bouclier].x2 = mouseX;  
+      }
       bouclier[n_bouclier].y2 = bouclier[n_bouclier].y1;  
       bouclier[n_bouclier].vie = 50; 
     
     
       point -= prix;
+      if(bouclier_mis_tuto == 0){
+        bouclier_mis_tuto = 1;
+      }
     
       
     }
@@ -602,5 +631,57 @@ void affiche_bouclier(){
     
   }
   
+  
+}
+
+void affiche_message(){
+  fill(255,255,255,150);
+  rect(100,0,400,50);  
+  textSize(15);
+  fill(0);
+  text(message,105,18);
+  if(nb_arme > 0 && bouclier_mis_tuto == 0){
+    message = "Bravo!!! Vous pouvez aussi créer des boucliers en\ncliquant la ou vous voulez et en glissant le curseur";  
+    
+  }  
+  if(bouclier_mis_tuto == 1){
+    bouclier_mis_tuto = 2;  
+    message = "Vous êtes un As!!!, mais prenez garde,\nla difficultée augmente!!! Bonne chance!!!";
+    tmp_message = 3000;
+  }
+  if(tmp_message > 0){
+    tmp_message--;
+    if(tmp_message == 0){
+      int n = round(random(1,5));
+      switch(n){
+        case 1:
+          message = "C'est super, les habitants de la ville croit en vous!!!\nVous allez sauver la terre!!!";
+          break;
+        case 2:
+          message = "Courage, vous y êtes presque.";
+          break;
+        case 3:
+          message = "Pensez à sécuriser vos canon les plus précieux";
+          break;
+        case 4:
+          message = "Il vaux mieux mettre plusieurs petit bouclier\nque un seul grand.";
+          break;
+        case 5:
+          message = "Le canon bleu est plus efficace. \nEconomiser votre argent pour en acheter un.";
+          break;
+      }
+        
+      tmp_message = -1;
+    }
+    
+  }
+  if(game_over > 0){
+    game_over--;
+    message = "Mince, vous avez perdu, la ville est détruite.\nScore: "+score;
+    
+  }
+  if(game_over == 0){
+    while(true);  
+  }
   
 }
