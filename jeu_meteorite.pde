@@ -1,10 +1,13 @@
+import ddf.minim.*;
 
-Arme[] arme = new Arme[50];
+Arme_principale[] arme_principale = new Arme_principale[50];
+Arme_grenade[] arme_grenade = new Arme_grenade[50];
+
 Meteorite[] meteorite = new Meteorite[1000];
 Balle[] balle = new Balle[2000];
 Bouclier[] bouclier = new Bouclier[20];
 
-class Arme {
+class Arme_principale {
   int x;
   int y;
   int type;
@@ -12,6 +15,16 @@ class Arme {
   float angle_tir = 0;
   long tmp_tir = 0;
 }
+
+class Arme_grenade {
+  int x;
+  int y;
+  int type;
+  float vie = 100;
+  float angle_tir = 0;
+  long tmp_tir = 0;
+}
+
 
 class Meteorite{
   int x;
@@ -24,7 +37,7 @@ class Meteorite{
 class Balle{
   int x;
   float direction = 0;
-  int arme;
+  int arme_principale;
   int active = 0;
   
 }
@@ -42,13 +55,17 @@ class Bouclier{
 
 int nb_balle = 0;
 
-int nb_arme = 0;
+int nb_arme_principale = 0;
 
-int selection_arme = 0;
+int selection_arme_principale = 0;
+
+int nb_arme_grenade = 0;
+
+int selection_arme_grenade = 0;
 
 int nb_meteorite = 2;
 
-int point = 50;
+int point = 10000;
 
 int score = 0;
 
@@ -70,12 +87,26 @@ int tmp_message = -1;
 
 int game_over = -1;
 
+int menu_inventaire = 0;
+
+AudioPlayer tir_son;
+
+Minim minim;
+
 void setup(){
   size(500,550);
   
+  minim = new Minim(this);
+  
+  tir_son = minim.loadFile("tir.mp3");
+  
   for (int i = 0; i < 50; i++) {
-    arme[i] = new Arme();
+    arme_principale[i] = new Arme_principale();
   }  
+  
+  for (int i = 0; i < 50; i++) {
+    arme_grenade[i] = new Arme_grenade();
+  } 
   
   for (int i = 0; i < 1000; i++) {
     meteorite[i] = new Meteorite();
@@ -102,26 +133,29 @@ void setup(){
 void draw(){
   background(200); 
   
-  affiche_barre_arme();
+  affiche_barre_arme_principale();
+  affiche_vie_ville();
   affiche_inventaire();
   
-  selectionne_arme();
-  affiche_arme();
+  selectionne_arme_principale();
+  selectionne_arme_grenade();
   
+  affiche_arme();
+   
   affiche_meteorite();
   mv_meteorite();
   
-  regene_arme();
+  regene_arme_principale();
   
   disp_meteorite();
-  orientation_canon_arme();
+  orientation_canon_arme_principale();
   
-  tir_arme();
+  tir_arme_principale();
   affiche_balle();
   
   mv_balle();
   
-  affiche_vie_ville();
+  
   
   creation_bouclier();
   affiche_bouclier();
@@ -131,20 +165,20 @@ void draw(){
   textSize(20);
   text(point,10,20);
   
-  /*for(int i = 0; i < nb_arme;i++){
-    float x = mouseX - arme[i].x;
-    float y = mouseY - arme[i].y + 1;
+  /*for(int i = 0; i < nb_arme_principale;i++){
+    float x = mouseX - arme_principale[i].x;
+    float y = mouseY - arme_principale[i].y + 1;
     
-    if(mouseY <= arme[i].y){
-      arme[i].angle_tir = 360 - atan(x/y) * 180 / PI;
+    if(mouseY <= arme_principale[i].y){
+      arme_principale[i].angle_tir = 360 - atan(x/y) * 180 / PI;
     }
     else{
-      arme[i].angle_tir = 180 - atan(x/y) * 180 / PI;  
+      arme_principale[i].angle_tir = 180 - atan(x/y) * 180 / PI;  
     }
     
-    line(arme[i].x,arme[i].y,arme[i].x,mouseY);
-    line(arme[i].x,arme[i].y,mouseX,mouseY);
-    line(arme[i].x,mouseY,mouseX,mouseY);
+    line(arme_principale[i].x,arme_principale[i].y,arme_principale[i].x,mouseY);
+    line(arme_principale[i].x,arme_principale[i].y,mouseX,mouseY);
+    line(arme_principale[i].x,mouseY,mouseX,mouseY);
   }*/
   
   
@@ -156,6 +190,8 @@ void draw(){
       game_over = 3;
     }
   }
+  
+  delay(1);
 }
 
 void affiche_inventaire(){
@@ -163,65 +199,135 @@ void affiche_inventaire(){
   stroke(0);
   
   rect(0,500,500,50);
+  if(menu_inventaire == 0){
+    line(100,500,100,550);
+    line(200,500,200,550);
+    
+    fill(0);
+    text("1",40,520);
+    text("2",140,520);
+    if(mousePressed == true && mouseY > 500){
+      int caseX = mouseX / 100 + 1;
+      if(caseX == 1){
+        menu_inventaire = 1;  
+        mousePressed = false;
+      }
+      if(caseX == 2){
+        menu_inventaire = 2;  
+        mousePressed = false;
+      }
+    }
+    
+  }
+  if(menu_inventaire == 1){
+      
+    fill(255,0,0);
+    rect(0,500,166,50);
+    
+    fill(0,255,0);
+    rect(167,500,166,50);
+    
+    fill(0,0,255);
+    rect(333,500,500,50);
+    
+    fill(0);
+    text("30",20,520);
+    text("75",186,520);
+    text("400",352,520);
+    
+    fill(255);
+    rect(0,475,75,25);
+    textSize(15);
+    fill(0);
+    
+    text("<-Retour",3,492);
+    
+    if(mousePressed == true && mouseX <= 75 && mouseY >= 475 && mouseY <= 500){
+      menu_inventaire = 0;
+      //delay(500);
+    }
+  }
   
-  fill(255,0,0);
-  rect(0,500,166,50);
-  
-  fill(0,255,0);
-  rect(167,500,166,50);
-  
-  fill(0,0,255);
-  rect(333,500,500,50);
-  
-  fill(0);
-  text("30",20,520);
-  text("75",186,520);
-  text("400",352,520);
+  if(menu_inventaire == 2){
+      
+    fill(255,0,0);
+    rect(0,500,166,50);
+    
+    fill(0,255,0);
+    rect(167,500,166,50);
+    
+    fill(0,0,255);
+    rect(333,500,500,50);
+    
+    fill(0);
+    text("60",20,520);
+    text("100",186,520);
+    text("600",352,520);
+    
+    fill(255);
+    rect(0,475,75,25);
+    textSize(15);
+    fill(0);
+    
+    text("<-Retour",3,492);
+    
+    if(mousePressed == true && mouseX <= 75 && mouseY >= 475 && mouseY <= 500){
+      menu_inventaire = 0;
+      //delay(500);
+    }
+  }
   
 }
 
-void selectionne_arme(){
+void selectionne_arme_principale(){
   if(mousePressed == false)clique_inventaire = 0;
   if(mousePressed == true){
-    if(selection_arme == 0 && mouseY >= 500){
+    if(selection_arme_principale == 0 && mouseY >= 500 && menu_inventaire == 1){
       clique_inventaire = 1;
-      selection_arme = mouseX / 166 + 1;
-      if(selection_arme == 1 && point < 30){
-        selection_arme = 0;
+      selection_arme_principale = mouseX / 166 + 1;
+      if(selection_arme_principale == 1 && point < 30){
+        selection_arme_principale = 0;
         message = "Mince!!!, vous n'avez pas assez de sous, détruiser les\nmétéorites pour en gagner ;)";
         tmp_message = 1000;
       }
       
-      if(selection_arme == 2 && point < 75){
-        selection_arme = 0;
+      if(selection_arme_principale == 2 && point < 75){
+        selection_arme_principale = 0;
         message = "Mince!!!, vous n'avez pas assez de sous, détruiser les\nmétéorites pour en gagner ;)";
         tmp_message = 1000;
       }
       
       
       
-      if(selection_arme == 3 && point < 400){
-        selection_arme = 0;
+      if(selection_arme_principale == 3 && point < 400){
+        selection_arme_principale = 0;
         message = "Mince!!!, vous n'avez pas assez de sous, détruiser les\nmétéorites pour en gagner ;)";
         tmp_message = 1000;
       }
       
       
     }
-    else if(selection_arme != 0){
+    else if(selection_arme_principale != 0){
         
       stroke(0);
       fill(50);
       rect(mouseX-5,mouseY,10,500-mouseY);  
       
-      if(selection_arme == 1)fill(255,0,0);  
-      if(selection_arme == 2)fill(0,255,0); 
-      if(selection_arme == 3)fill(0,0,255); 
+      if(selection_arme_principale == 1)fill(255,0,0);  
+      if(selection_arme_principale == 2)fill(0,255,0); 
+      if(selection_arme_principale == 3)fill(0,0,255); 
       
-      for(int i = 0; i < nb_arme;i++){
-        if(mouseX + 25 > arme[i].x - 25 && mouseX - 25 < arme[i].x + 25){
-          if(mouseY + 25 > arme[i].y - 25 && mouseY - 25 < arme[i].y + 25){
-            stroke(255,0,0);  
+      for(int i = 0; i < nb_arme_principale;i++){
+        if(mouseX + 25 > arme_principale[i].x - 25 && mouseX - 25 < arme_principale[i].x + 25){
+          if(mouseY + 25 > arme_principale[i].y - 25 && mouseY - 25 < arme_principale[i].y + 25){
+            stroke(255,0,0);
+          }
+        }
+      }
+      for(int i = 0; i < nb_arme_grenade;i++){
+        if(mouseX + 25 > arme_grenade[i].x - 25 && mouseX - 25 < arme_grenade[i].x + 25){
+          if(mouseY + 25 > arme_grenade[i].y - 25 && mouseY - 25 < arme_grenade[i].y + 25){
+            stroke(255,0,0);
           }
         }
       }
@@ -232,79 +338,214 @@ void selectionne_arme(){
     }
   }
   
-  if(mousePressed == false && selection_arme != 0){
+  if(mousePressed == false && selection_arme_principale != 0 && mouseY < 470){
     clique_inventaire = 0; 
     int libre = 1;
-    for(int i = 0; i < nb_arme;i++){
-      if(mouseX + 25 > arme[i].x - 25 && mouseX - 25 < arme[i].x + 25){
-        if(mouseY + 25 > arme[i].y - 25 && mouseY - 25 < arme[i].y + 25){
+    for(int i = 0; i < nb_arme_principale;i++){
+      if(mouseX + 25 > arme_principale[i].x - 25 && mouseX - 25 < arme_principale[i].x + 25){
+        if(mouseY + 25 > arme_principale[i].y - 25 && mouseY - 25 < arme_principale[i].y + 25){
+          libre = 0;
+        }
+      }
+    }
+    for(int i = 0; i < nb_arme_grenade;i++){
+      if(mouseX + 25 > arme_grenade[i].x - 25 && mouseX - 25 < arme_grenade[i].x + 25){
+        if(mouseY + 25 > arme_grenade[i].y - 25 && mouseY - 25 < arme_grenade[i].y + 25){
           libre = 0;
         }
       }
     }
     if(libre == 1){
-      if(selection_arme == 1 && point >= 30){
+      if(selection_arme_principale == 1 && point >= 30){
         point -= 30;  
       }
-      if(selection_arme == 2 && point >= 75){
+      if(selection_arme_principale == 2 && point >= 75){
         point -= 75;  
       }
-      if(selection_arme == 3 && point >= 400){
+      if(selection_arme_principale == 3 && point >= 400){
         point -= 400;  
       }
-      arme[nb_arme].x = mouseX;
-      arme[nb_arme].y = mouseY;
+      arme_principale[nb_arme_principale].x = mouseX;
+      arme_principale[nb_arme_principale].y = mouseY;
     
-      arme[nb_arme].type = selection_arme;
-      nb_arme++;
+      arme_principale[nb_arme_principale].type = selection_arme_principale;
+      nb_arme_principale++;
       //println(mouseX);
     }
     
-    selection_arme = 0;
+    selection_arme_principale = 0;
+  }  
+}
+
+
+void selectionne_arme_grenade(){
+  if(mousePressed == false)clique_inventaire = 0;
+  if(mousePressed == true){
+    if(selection_arme_grenade == 0 && mouseY >= 500 && menu_inventaire == 2){
+      clique_inventaire = 1;
+      selection_arme_grenade = mouseX / 166 + 1;
+      if(selection_arme_grenade == 1 && point < 60){
+        selection_arme_grenade = 0;
+        message = "Mince!!!, vous n'avez pas assez de sous, détruiser les\nmétéorites pour en gagner ;)";
+        tmp_message = 1000;
+      }
+      
+      if(selection_arme_grenade == 2 && point < 100){
+        selection_arme_grenade = 0;
+        message = "Mince!!!, vous n'avez pas assez de sous, détruiser les\nmétéorites pour en gagner ;)";
+        tmp_message = 1000;
+      }
+      
+      
+      
+      if(selection_arme_grenade == 3 && point < 600){
+        selection_arme_grenade = 0;
+        message = "Mince!!!, vous n'avez pas assez de sous, détruiser les\nmétéorites pour en gagner ;)";
+        tmp_message = 1000;
+      }
+      
+      
+    }
+    else if(selection_arme_grenade != 0){
+        
+      stroke(0);
+      fill(50);
+      rect(mouseX-5,mouseY,10,500-mouseY);  
+      
+      if(selection_arme_grenade == 1)fill(255,0,0);  
+      if(selection_arme_grenade == 2)fill(0,255,0); 
+      if(selection_arme_grenade == 3)fill(0,0,255); 
+      
+      for(int i = 0; i < nb_arme_grenade;i++){
+        if(mouseX + 25 > arme_grenade[i].x - 25 && mouseX - 25 < arme_grenade[i].x + 25){
+          if(mouseY + 25 > arme_grenade[i].y - 25 && mouseY - 25 < arme_grenade[i].y + 25){
+            stroke(255,0,0);
+          }
+        }
+      }
+      for(int i = 0; i < nb_arme_principale;i++){
+        if(mouseX + 40 > arme_principale[i].x - 25 && mouseX < arme_principale[i].x + 25){
+          if(mouseY + 40 > arme_principale[i].y - 25 && mouseY < arme_principale[i].y + 25){
+            stroke(255,0,0);
+          }
+        }
+      }
+      
+      rect(mouseX-20,mouseY-20,40,40);
+      
+      stroke(0);
+    }
+  }
+  
+  if(mousePressed == false && selection_arme_grenade != 0 && mouseY < 470){
+    clique_inventaire = 0; 
+    int libre = 1;
+    for(int i = 0; i < nb_arme_grenade;i++){
+      if(mouseX + 25 > arme_grenade[i].x - 25 && mouseX - 25 < arme_grenade[i].x + 25){
+        if(mouseY + 25 > arme_grenade[i].y - 25 && mouseY - 25 < arme_grenade[i].y + 25){
+          libre = 0;
+        }
+      }
+    }
+    for(int i = 0; i < nb_arme_principale;i++){
+      if(mouseX + 40 > arme_principale[i].x - 25 && mouseX < arme_principale[i].x + 25){
+        if(mouseY + 40 > arme_principale[i].y - 25 && mouseY < arme_principale[i].y + 25){
+          libre = 0;
+        }
+      }
+    }
+    if(libre == 1){
+      if(selection_arme_grenade == 1 && point >= 30){
+        point -= 30;  
+      }
+      if(selection_arme_grenade == 2 && point >= 75){
+        point -= 75;  
+      }
+      if(selection_arme_grenade == 3 && point >= 400){
+        point -= 400;  
+      }
+      arme_grenade[nb_arme_grenade].x = mouseX;
+      arme_grenade[nb_arme_grenade].y = mouseY;
+    
+      arme_grenade[nb_arme_grenade].type = selection_arme_grenade;
+      nb_arme_grenade++;
+      //println(mouseX);
+    }
+    
+    selection_arme_grenade = 0;
   }  
 }
 
 void affiche_arme(){
-  for(int i = 0; i < nb_arme;i++){
+  for(int i = 0; i < nb_arme_principale;i++){
     
     stroke(0);
     fill(0);
     
-    rect(arme[i].x - 50,arme[i].y - 10,20,5);
+    rect(arme_principale[i].x - 50,arme_principale[i].y - 10,20,5);
     
     fill(0,255,0);
-    if(arme[i].vie < 0)arme[i].vie = 0;
+    if(arme_principale[i].vie < 0)arme_principale[i].vie = 0;
     
-    rect(arme[i].x - 50,arme[i].y - 10,map(arme[i].vie,0,100,0,20),5); 
+    rect(arme_principale[i].x - 50,arme_principale[i].y - 10,map(arme_principale[i].vie,0,100,0,20),5); 
     
     fill(0);
     
     pushMatrix();
-    translate(arme[i].x,arme[i].y);
-    rotate(PI * arme[i].angle_tir / 180);
+    translate(arme_principale[i].x,arme_principale[i].y);
+    rotate(PI * arme_principale[i].angle_tir / 180);
     rect(-10,0,20,-40);
     popMatrix();
     
     
         
-    if(arme[i].type == 1)fill(255,0,0);  
-    if(arme[i].type == 2)fill(0,255,0); 
-    if(arme[i].type == 3)fill(0,0,255); 
+    if(arme_principale[i].type == 1)fill(255,0,0);  
+    if(arme_principale[i].type == 2)fill(0,255,0); 
+    if(arme_principale[i].type == 3)fill(0,0,255); 
     
-    if(arme[i].vie < 10)fill(50,50,50);
+    if(arme_principale[i].vie < 10)fill(50,50,50);
     
-    ellipse(arme[i].x,arme[i].y,50,50);
+    ellipse(arme_principale[i].x,arme_principale[i].y,50,50);
     
        
      
     
+  }
+  
+  for(int i = 0; i < nb_arme_grenade;i++){
+    
+    stroke(0);
+    fill(0);
+    
+    rect(arme_grenade[i].x - 50,arme_grenade[i].y - 10,20,5);
+    
+    fill(0,255,0);
+    if(arme_grenade[i].vie < 0)arme_grenade[i].vie = 0;
+    
+    rect(arme_grenade[i].x - 50,arme_grenade[i].y - 10,map(arme_grenade[i].vie,0,100,0,20),5); 
+    
+    fill(0);
+    
+    pushMatrix();
+    translate(arme_grenade[i].x,arme_grenade[i].y);
+    rotate(PI * arme_grenade[i].angle_tir / 180);
+    rect(-10,0,20,-40);
+    popMatrix();
+    
+    if(arme_grenade[i].type == 1)fill(255,0,0);  
+    if(arme_grenade[i].type == 2)fill(0,255,0); 
+    if(arme_grenade[i].type == 3)fill(0,0,255); 
+    
+    if(arme_grenade[i].vie < 10)fill(50,50,50);
+    
+    rect(arme_grenade[i].x-20,arme_grenade[i].y-20,40,40);
   } 
 }
 
-void regene_arme(){
-  for(int i = 0; i < nb_arme;i++){
-    if(arme[i].vie < 100){
-      arme[i].vie += 0.05;  
+void regene_arme_principale(){
+  for(int i = 0; i < nb_arme_principale;i++){
+    if(arme_principale[i].vie < 100){
+      arme_principale[i].vie += 0.05;  
     }
     
   }
@@ -338,11 +579,23 @@ void mv_meteorite(){
   for(int i = 0; i < nb_meteorite;i++){
     meteorite[i].y+=2;  
     
-    for(int j = 0; j < nb_arme;j++){
-      if(meteorite[i].x > arme[j].x - 25 && meteorite[i].x < arme[j].x + 25){
-        if(meteorite[i].y > arme[j].y - 25 && meteorite[i].y < arme[j].y + 25){
-          if(arme[j].vie > 10){
-            arme[j].vie -= 25;  
+    for(int j = 0; j < nb_arme_principale;j++){
+      if(meteorite[i].x > arme_principale[j].x - 25 && meteorite[i].x < arme_principale[j].x + 25){
+        if(meteorite[i].y > arme_principale[j].y - 25 && meteorite[i].y < arme_principale[j].y + 25){
+          if(arme_principale[j].vie > 10){
+            arme_principale[j].vie -= 25;  
+            meteorite[i].y = 0 - round(random(50,500));
+            meteorite[i].x = round(random(10,490));
+          }
+        }
+      }
+    }
+    
+    for(int j = 0; j < nb_arme_grenade;j++){
+      if(meteorite[i].x > arme_grenade[j].x - 20 && meteorite[i].x < arme_grenade[j].x + 20){
+        if(meteorite[i].y > arme_grenade[j].y - 20 && meteorite[i].y < arme_grenade[j].y + 20){
+          if(arme_grenade[j].vie > 10){
+            arme_grenade[j].vie -= 20;  
             meteorite[i].y = 0 - round(random(50,500));
             meteorite[i].x = round(random(10,490));
           }
@@ -391,16 +644,16 @@ void disp_meteorite(){
   
 }
 
-void orientation_canon_arme(){
-  for(int i = 0; i < nb_arme;i++){
-    if(arme[i].vie > 10){
+void orientation_canon_arme_principale(){
+  for(int i = 0; i < nb_arme_principale;i++){
+    if(arme_principale[i].vie > 10){
       float distance_min = 10000; 
       int meteorite_proche = -1;
       for(int j = 0; j < nb_meteorite;j++){
         float distance = 0;
         
-        float x = meteorite[j].x - arme[i].x;
-        float y = meteorite[j].y - arme[i].y;  
+        float x = meteorite[j].x - arme_principale[i].x;
+        float y = meteorite[j].y - arme_principale[i].y;  
         
         distance = sqrt(x*x+y*y);
         
@@ -410,23 +663,23 @@ void orientation_canon_arme(){
         }
       } 
       
-      float x = meteorite[meteorite_proche].x - arme[i].x;
-      float y = (meteorite[meteorite_proche].y + 50) - arme[i].y + 1;
+      float x = meteorite[meteorite_proche].x - arme_principale[i].x;
+      float y = (meteorite[meteorite_proche].y + 50) - arme_principale[i].y + 1;
       
-      if(meteorite[meteorite_proche].y < arme[i].y){
-        arme[i].angle_tir = 360 - atan(x/y) * 180 / PI;
+      if(meteorite[meteorite_proche].y < arme_principale[i].y){
+        arme_principale[i].angle_tir = 360 - atan(x/y) * 180 / PI;
       }
       else{
-        arme[i].angle_tir = 180 - atan(x/y) * 180 / PI;  
+        arme_principale[i].angle_tir = 180 - atan(x/y) * 180 / PI;  
       }
     }
   }
 }
 
-void tir_arme(){
-  for(int i = 0; i < nb_arme;i++){
+void tir_arme_principale(){
+  for(int i = 0; i < nb_arme_principale;i++){
     int cadence = 0;
-    switch(arme[i].type){
+    switch(arme_principale[i].type){
       case 1:
         cadence = 750;
         break;
@@ -438,14 +691,16 @@ void tir_arme(){
         break;
       
     }
-    if(millis() - arme[i].tmp_tir > cadence && arme[i].vie > 10){
-      arme[i].tmp_tir = millis();
+    if(millis() - arme_principale[i].tmp_tir > cadence && arme_principale[i].vie > 10){
+      arme_principale[i].tmp_tir = millis();
       int nballe;
       for(nballe = 0; balle[nballe].active == 1;nballe++);  
       balle[nballe].x = 50;
-      balle[nballe].direction = arme[i].angle_tir + 270;
-      balle[nballe].arme = i;
+      balle[nballe].direction = arme_principale[i].angle_tir + 270;
+      balle[nballe].arme_principale = i;
       balle[nballe].active = 1;
+      //tir_son.play();
+      //tir_son.rewind();
     }
     
   } 
@@ -455,7 +710,7 @@ void affiche_balle(){
   for(int i = 0; i < 50;i++){
     if(balle[i].active == 1){
       pushMatrix();
-      translate(arme[balle[i].arme].x,arme[balle[i].arme].y);
+      translate(arme_principale[balle[i].arme_principale].x,arme_principale[balle[i].arme_principale].y);
       rotate(PI * balle[i].direction / 180);
       fill(255,255,0);
       stroke(0);
@@ -467,13 +722,13 @@ void affiche_balle(){
       
       fill(255,0,0);
       
-      x = arme[balle[i].arme].x + x;
+      x = arme_principale[balle[i].arme_principale].x + x;
       
       if((balle[i].direction-270 > 0 && balle[i].direction-270 < 270)){
-        y = arme[balle[i].arme].y + y;
+        y = arme_principale[balle[i].arme_principale].y + y;
       }
       else{
-        y = arme[balle[i].arme].y - y; 
+        y = arme_principale[balle[i].arme_principale].y - y; 
       }
       
       //test_collision
@@ -483,13 +738,13 @@ void affiche_balle(){
           if(x > meteorite[j].x - 15 && x < meteorite[j].x + 15){
             if(y > meteorite[j].y - 15 && y < meteorite[j].y + 15){ 
               balle[i].active = 0; 
-              if(arme[balle[i].arme].type == 1){
+              if(arme_principale[balle[i].arme_principale].type == 1){
                 meteorite[j].vie -= 3;
               }
-              if(arme[balle[i].arme].type == 2){
+              if(arme_principale[balle[i].arme_principale].type == 2){
                 meteorite[j].vie -= 8;
               }
-              if(arme[balle[i].arme].type == 3){
+              if(arme_principale[balle[i].arme_principale].type == 3){
                 meteorite[j].vie -= 20;
               }
               point++;
@@ -502,13 +757,8 @@ void affiche_balle(){
             }
           }  
         }
-      }
-     
-      
-      
-    
+      }    
     }
-  
   }
 }
 
@@ -536,17 +786,23 @@ void affiche_vie_ville(){
   
 }
 
-void affiche_barre_arme(){
-  for(int i = 0; i < nb_arme;i++){
+void affiche_barre_arme_principale(){
+  for(int i = 0; i < nb_arme_principale;i++){
     stroke(0);
     fill(50);
-    rect(arme[i].x-5,arme[i].y,10,500-arme[i].y);  
+    rect(arme_principale[i].x-5,arme_principale[i].y,10,500-arme_principale[i].y);  
+    
+  }
+  for(int i = 0; i < nb_arme_grenade;i++){
+    stroke(0);
+    fill(50);
+    rect(arme_grenade[i].x-5,arme_grenade[i].y,10,500-arme_grenade[i].y);  
     
   }
 }
 
 void creation_bouclier(){
-  if(mousePressed == true && mouseY < 500 && selection_arme == 0 && clique_inventaire == 0){
+  if(mousePressed == true && mouseY < 470 && selection_arme_principale == 0 && clique_inventaire == 0){
     if(cree_bouclier == 0){
       for(int i = 0; i < 20;i++){
         if(bouclier[i].vie <= 0){
@@ -575,7 +831,7 @@ void creation_bouclier(){
     }      
   }
   
-  if(mousePressed == false && cree_bouclier == 1){
+  if(mousePressed == false && cree_bouclier == 1 && mouseY < 470){
     
     int prix = abs(mouseX/10 - bouclier[n_bouclier].x1/10);
     
@@ -640,7 +896,7 @@ void affiche_message(){
   textSize(15);
   fill(0);
   text(message,105,18);
-  if(nb_arme > 0 && bouclier_mis_tuto == 0){
+  if(nb_arme_principale > 0 && bouclier_mis_tuto == 0){
     message = "Bravo!!! Vous pouvez aussi créer des boucliers en\ncliquant la ou vous voulez et en glissant le curseur";  
     
   }  
@@ -681,6 +937,8 @@ void affiche_message(){
     
   }
   if(game_over == 0){
+    tir_son.close();
+    minim.stop();
     while(true);  
   }
   
