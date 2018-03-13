@@ -218,8 +218,17 @@ void affiche_inventaire(){
     line(200,500,200,550);
     
     fill(0);
-    text("1",40,520);
-    text("2",140,520);
+    rect(50 - 7,530,15,-28);
+      
+    fill(100);  
+    ellipse(50,532,32,32);  
+    
+    fill(0);
+    rect(150 - 7,530,15,-28);
+    fill(100);
+    rect(150 - 15,532 - 15,30,30);  
+    
+   
     if(mousePressed == true && mouseY > 500){
       int caseX = mouseX / 100 + 1;
       if(caseX == 1){
@@ -249,6 +258,18 @@ void affiche_inventaire(){
     text("75",186,520);
     text("400",352,520);
     
+    stroke(0);
+    
+    for(int i = 0; i < 3;i++){
+      fill(0);
+      rect((i+1)*163 - 40 - 7,530,15,-28);
+      if(i == 0)fill(255,0,0);
+      if(i == 1)fill(0,255,0);
+      if(i == 2)fill(0,0,255);
+      ellipse((i+1)*163 - 40,532,35,35);  
+    }
+    
+    
     fill(255);
     rect(0,475,75,25);
     textSize(15);
@@ -276,7 +297,18 @@ void affiche_inventaire(){
     fill(0);
     text("60",20,520);
     text("100",186,520);
-    text("600",352,520);
+    text("1000",352,520);
+    
+    stroke(0);
+    
+    for(int i = 0; i < 3;i++){
+      fill(0);
+      rect((i+1)*163 - 40 - 7,530,15,-28);
+      if(i == 0)fill(255,0,0);
+      if(i == 1)fill(0,255,0);
+      if(i == 2)fill(0,0,255);
+      rect((i+1)*163 - 40 - 15,532 - 15,30,30);  
+    }
     
     fill(255);
     rect(0,475,75,25);
@@ -412,7 +444,7 @@ void selectionne_arme_grenade(){
       
       
       
-      if(selection_arme_grenade == 3 && point < 600){
+      if(selection_arme_grenade == 3 && point < 1000){
         selection_arme_grenade = 0;
         message = "Mince!!!, vous n'avez pas assez de sous, détruiser les\nmétéorites pour en gagner ;)";
         tmp_message = 1000;
@@ -469,14 +501,14 @@ void selectionne_arme_grenade(){
       }
     }
     if(libre == 1){
-      if(selection_arme_grenade == 1 && point >= 30){
+      if(selection_arme_grenade == 1 && point >= 60){
         point -= 60;  
       }
-      if(selection_arme_grenade == 2 && point >= 75){
+      if(selection_arme_grenade == 2 && point >= 100){
         point -= 100;  
       }
-      if(selection_arme_grenade == 3 && point >= 400){
-        point -= 600;  
+      if(selection_arme_grenade == 3 && point >= 1000){
+        point -= 1000;  
       }
       arme_grenade[nb_arme_grenade].x = mouseX;
       arme_grenade[nb_arme_grenade].y = mouseY;
