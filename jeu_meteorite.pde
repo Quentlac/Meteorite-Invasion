@@ -1,10 +1,11 @@
-import ddf.minim.*;
 
 Arme_principale[] arme_principale = new Arme_principale[50];
 Arme_grenade[] arme_grenade = new Arme_grenade[50];
 
 Meteorite[] meteorite = new Meteorite[1000];
 Balle[] balle = new Balle[2000];
+Grenade[] grenade = new Grenade[2000];
+
 Bouclier[] bouclier = new Bouclier[20];
 
 class Arme_principale {
@@ -42,6 +43,15 @@ class Balle{
   
 }
 
+class Grenade{
+  int x;
+  float direction = 0;
+  int arme_grenade;  
+  int active = 0;
+  int cercle_explose = -1;
+  
+}
+
 class Bouclier{
   int x1;
   int y1;
@@ -65,14 +75,13 @@ int selection_arme_grenade = 0;
 
 int nb_meteorite = 2;
 
-int point = 10000;
+int point = 50;
 
 int score = 0;
 
 int level = 0;
 
 int vie_ville = 700;
-
 int cree_bouclier = 0;
 int nb_bouclier = 0;
 int n_bouclier = 0;
@@ -89,16 +98,11 @@ int game_over = -1;
 
 int menu_inventaire = 0;
 
-AudioPlayer tir_son;
-
-Minim minim;
 
 void setup(){
   size(500,550);
   
-  minim = new Minim(this);
   
-  tir_son = minim.loadFile("tir.mp3");
   
   for (int i = 0; i < 50; i++) {
     arme_principale[i] = new Arme_principale();
@@ -118,6 +122,11 @@ void setup(){
   
   for (int i = 0; i < 2000; i++) {
     balle[i] = new Balle();
+    
+  } 
+  
+  for (int i = 0; i < 2000; i++) {
+    grenade[i] = new Grenade();
     
   } 
   
@@ -149,11 +158,16 @@ void draw(){
   
   disp_meteorite();
   orientation_canon_arme_principale();
+  orientation_canon_arme_grenade();
   
   tir_arme_principale();
+  tir_arme_grenade();
+  
   affiche_balle();
+  affiche_grenade();
   
   mv_balle();
+  mv_grenade();
   
   
   
@@ -456,13 +470,13 @@ void selectionne_arme_grenade(){
     }
     if(libre == 1){
       if(selection_arme_grenade == 1 && point >= 30){
-        point -= 30;  
+        point -= 60;  
       }
       if(selection_arme_grenade == 2 && point >= 75){
-        point -= 75;  
+        point -= 100;  
       }
       if(selection_arme_grenade == 3 && point >= 400){
-        point -= 400;  
+        point -= 600;  
       }
       arme_grenade[nb_arme_grenade].x = mouseX;
       arme_grenade[nb_arme_grenade].y = mouseY;
@@ -676,6 +690,38 @@ void orientation_canon_arme_principale(){
   }
 }
 
+void orientation_canon_arme_grenade(){
+  for(int i = 0; i < nb_arme_grenade;i++){
+    if(arme_grenade[i].vie > 10){
+      float distance_min = 10000; 
+      int meteorite_proche = -1;
+      for(int j = 0; j < nb_meteorite;j++){
+        float distance = 0;
+        
+        float x = meteorite[j].x - arme_grenade[i].x;
+        float y = meteorite[j].y - arme_grenade[i].y;  
+        
+        distance = sqrt(x*x+y*y);
+        
+        if(distance < distance_min){
+          distance_min = distance;  
+          meteorite_proche = j;
+        }
+      } 
+      
+      float x = meteorite[meteorite_proche].x - arme_grenade[i].x;
+      float y = (meteorite[meteorite_proche].y + 50) - arme_grenade[i].y + 1;
+      
+      if(meteorite[meteorite_proche].y < arme_grenade[i].y){
+        arme_grenade[i].angle_tir = 360 - atan(x/y) * 180 / PI;
+      }
+      else{
+        arme_grenade[i].angle_tir = 180 - atan(x/y) * 180 / PI;  
+      }
+    }
+  }
+}
+
 void tir_arme_principale(){
   for(int i = 0; i < nb_arme_principale;i++){
     int cadence = 0;
@@ -706,8 +752,38 @@ void tir_arme_principale(){
   } 
 }
 
+void tir_arme_grenade(){
+  for(int i = 0; i < nb_arme_grenade;i++){
+    int cadence = 0;
+    switch(arme_grenade[i].type){
+      case 1:
+        cadence = 1500;
+        break;
+      case 2:
+        cadence = 750;
+         break;
+      case 3:
+        cadence = 500;
+        break;
+      
+    }
+    if(millis() - arme_grenade[i].tmp_tir > cadence && arme_grenade[i].vie > 10){
+      arme_grenade[i].tmp_tir = millis();
+      int ngrenade;
+      for(ngrenade = 0; grenade[ngrenade].active == 1;ngrenade++);  
+      grenade[ngrenade].x = 50;
+      grenade[ngrenade].direction = arme_grenade[i].angle_tir + 270;
+      grenade[ngrenade].arme_grenade = i;
+      grenade[ngrenade].active = 1;
+      //tir_son.play();
+      //tir_son.rewind();
+    }
+    
+  } 
+}
+
 void affiche_balle(){
-  for(int i = 0; i < 50;i++){
+  for(int i = 0; i < 2000;i++){
     if(balle[i].active == 1){
       pushMatrix();
       translate(arme_principale[balle[i].arme_principale].x,arme_principale[balle[i].arme_principale].y);
@@ -762,12 +838,126 @@ void affiche_balle(){
   }
 }
 
+void affiche_grenade(){
+  for(int i = 0; i < 2000;i++){
+    if(grenade[i].active == 1){
+      if(grenade[i].cercle_explose == -1){
+        pushMatrix();
+        translate(arme_grenade[grenade[i].arme_grenade].x,arme_grenade[grenade[i].arme_grenade].y);
+        rotate(PI * grenade[i].direction / 180);
+        fill(255,0,0);
+        stroke(0);
+        ellipse(grenade[i].x,0,10,10);
+        popMatrix(); 
+      }
+      
+      float x = grenade[i].x * sin(PI * (grenade[i].direction - 270) / 180);
+      float y = sqrt(grenade[i].x * grenade[i].x - x * x);
+            
+      x = arme_grenade[grenade[i].arme_grenade].x + x;
+      
+      if((grenade[i].direction-270 > 0 && grenade[i].direction-270 < 270)){
+        y = arme_grenade[grenade[i].arme_grenade].y + y;
+      }
+      else{
+        y = arme_grenade[grenade[i].arme_grenade].y - y; 
+      }
+      
+      if(grenade[i].cercle_explose >= 0){
+        fill(255,0,0,20);
+        stroke(255,0,0);
+        
+        ellipse(x,y,grenade[i].cercle_explose*2,grenade[i].cercle_explose*2);
+        stroke(0);
+        grenade[i].cercle_explose+=5;
+        int taille = 0;
+        
+        if(arme_grenade[grenade[i].arme_grenade].type == 1){
+          taille = 50;  
+        }
+        if(arme_grenade[grenade[i].arme_grenade].type == 2){
+          taille = 100;  
+        }
+        if(arme_grenade[grenade[i].arme_grenade].type == 3){
+          taille = 150;  
+        }
+        
+        if(grenade[i].cercle_explose > taille){
+          grenade[i].cercle_explose = -1;
+          grenade[i].active = 0;
+        }
+
+        
+      }
+      
+      fill(255,0,0);      
+      //test_collision
+      
+      for(int j = 0; j < nb_meteorite;j++){
+        if(meteorite[j].y > 10){
+          if(x > meteorite[j].x - 15 && x < meteorite[j].x + 15){
+            if(y > meteorite[j].y - 15 && y < meteorite[j].y + 15){ 
+              grenade[i].cercle_explose = 0; 
+              
+              for(int k = 0; k < nb_meteorite;k++){
+                float distance = 0;
+        
+                float x_dist = meteorite[k].x - x;
+                float y_dist = meteorite[k].y - y;  
+        
+                distance = sqrt(x_dist*x_dist+y_dist*y_dist);
+                
+                if(arme_grenade[grenade[i].arme_grenade].type == 1){
+                  if(distance < 50){
+                    meteorite[k].vie -= 5;
+                  }
+                }
+                if(arme_grenade[grenade[i].arme_grenade].type == 2){
+                  if(distance < 100){
+                    meteorite[k].vie -= 12;
+                  }
+                }
+                if(arme_grenade[grenade[i].arme_grenade].type == 3){
+                  if(distance < 150){
+                    meteorite[k].vie -= 30;
+                  }
+                }
+              }
+                            
+              point++;
+              score++;
+              if(score%75 == 0){
+                nb_meteorite += 2;
+                level++;
+               
+              }
+            }
+          }  
+        }
+      } 
+    }
+  }
+}
+
 void mv_balle(){
-  for(int i = 0; i < 50;i++){
+  for(int i = 0; i < 2000;i++){
     if(balle[i].active == 1){
       balle[i].x+=4;  
       if(balle[i].x > 500){
         balle[i].active = 0;
+        
+      }
+    }
+  }
+  
+}
+
+void mv_grenade(){
+  for(int i = 0; i < 2000;i++){
+    if(grenade[i].active == 1 && grenade[i].cercle_explose == -1){
+      grenade[i].x+=4;  
+      if(grenade[i].x > 500){
+        grenade[i].active = 0;
         
       }
     }
@@ -937,8 +1127,7 @@ void affiche_message(){
     
   }
   if(game_over == 0){
-    tir_son.close();
-    minim.stop();
+
     while(true);  
   }
   
