@@ -32,6 +32,7 @@ class Meteorite{
   int y;
   float vie = 2;
   float vie_max = 2;
+  float vitesse = 1;
   
 }
 
@@ -118,6 +119,7 @@ void setup(){
     meteorite[i].x = round(random(10,490));
     meteorite[i].vie = 2;
     meteorite[i].vie_max = 2;
+    meteorite[i].vitesse = 2;
   } 
   
   for (int i = 0; i < 2000; i++) {
@@ -623,15 +625,15 @@ void affiche_meteorite(){
 
 void mv_meteorite(){
   for(int i = 0; i < nb_meteorite;i++){
-    meteorite[i].y+=2;  
+    meteorite[i].y+=meteorite[i].vitesse;  
     
     for(int j = 0; j < nb_arme_principale;j++){
       if(meteorite[i].x > arme_principale[j].x - 25 && meteorite[i].x < arme_principale[j].x + 25){
         if(meteorite[i].y > arme_principale[j].y - 25 && meteorite[i].y < arme_principale[j].y + 25){
           if(arme_principale[j].vie > 10){
             arme_principale[j].vie -= 25;  
-            meteorite[i].y = 0 - round(random(50,500));
-            meteorite[i].x = round(random(10,490));
+            meteorite[i].vie = 0;
+            
           }
         }
       }
@@ -642,8 +644,7 @@ void mv_meteorite(){
         if(meteorite[i].y > arme_grenade[j].y - 20 && meteorite[i].y < arme_grenade[j].y + 20){
           if(arme_grenade[j].vie > 10){
             arme_grenade[j].vie -= 20;  
-            meteorite[i].y = 0 - round(random(50,500));
-            meteorite[i].x = round(random(10,490));
+            meteorite[i].vie = 0;
           }
         }
       }
@@ -667,6 +668,9 @@ void disp_meteorite(){
       
       meteorite[i].vie = round(random(1*(level+1),3*(level+1)));
       meteorite[i].vie_max = meteorite[i].vie;
+      
+      meteorite[i].vitesse = round(random(1,4));
+      
      }
      
      for(int j = 0; j < 20;j++){
@@ -677,7 +681,10 @@ void disp_meteorite(){
         
         
            meteorite[i].vie = round(random(1*(level+1),3*(level+1)));
-           meteorite[i].vie_max = meteorite[i].vie;  
+           meteorite[i].vie_max = meteorite[i].vie; 
+           
+           meteorite[i].vitesse = round(random(1,4));
+           
            bouclier[j].vie -= 5;
            score++;
          }
@@ -924,15 +931,15 @@ void affiche_grenade(){
           
           if(distance <= grenade[i].cercle_explose){
             if(arme_grenade[grenade[i].arme_grenade].type == 1){
-              meteorite[k].vie -= 5;
+              meteorite[k].vie -= 3;
   
             }
             if(arme_grenade[grenade[i].arme_grenade].type == 2){
-              meteorite[k].vie -= 12;
+              meteorite[k].vie -= 8;
               
             }
             if(arme_grenade[grenade[i].arme_grenade].type == 3){
-                meteorite[k].vie -= 30; 
+                meteorite[k].vie -= 15; 
             }
           }
         }
