@@ -622,7 +622,7 @@ void mv_meteorite(){
 }
 
 void disp_meteorite(){
-  println(level);
+  //println(level);
   for(int i = 0; i < nb_meteorite;i++){
     if(meteorite[i].y >= 480 || meteorite[i].vie <= 0){
       if(meteorite[i].y >= 480){
@@ -882,6 +882,29 @@ void affiche_grenade(){
           taille = 150;  
         }
         
+        for(int k = 0; k < nb_meteorite;k++){
+          float distance = 0;
+  
+          float x_dist = meteorite[k].x - x;
+          float y_dist = meteorite[k].y - y;  
+  
+          distance = sqrt(x_dist*x_dist+y_dist*y_dist);
+          
+          if(distance <= grenade[i].cercle_explose){
+            if(arme_grenade[grenade[i].arme_grenade].type == 1){
+              meteorite[k].vie -= 5;
+  
+            }
+            if(arme_grenade[grenade[i].arme_grenade].type == 2){
+              meteorite[k].vie -= 12;
+              
+            }
+            if(arme_grenade[grenade[i].arme_grenade].type == 3){
+                meteorite[k].vie -= 30; 
+            }
+          }
+        }
+        
         if(grenade[i].cercle_explose > taille){
           grenade[i].cercle_explose = -1;
           grenade[i].active = 0;
@@ -898,32 +921,6 @@ void affiche_grenade(){
           if(x > meteorite[j].x - 15 && x < meteorite[j].x + 15){
             if(y > meteorite[j].y - 15 && y < meteorite[j].y + 15){ 
               grenade[i].cercle_explose = 0; 
-              
-              for(int k = 0; k < nb_meteorite;k++){
-                float distance = 0;
-        
-                float x_dist = meteorite[k].x - x;
-                float y_dist = meteorite[k].y - y;  
-        
-                distance = sqrt(x_dist*x_dist+y_dist*y_dist);
-                
-                if(arme_grenade[grenade[i].arme_grenade].type == 1){
-                  if(distance < 50){
-                    meteorite[k].vie -= 5;
-                  }
-                }
-                if(arme_grenade[grenade[i].arme_grenade].type == 2){
-                  if(distance < 100){
-                    meteorite[k].vie -= 12;
-                  }
-                }
-                if(arme_grenade[grenade[i].arme_grenade].type == 3){
-                  if(distance < 150){
-                    meteorite[k].vie -= 30;
-                  }
-                }
-              }
-                            
               point++;
               score++;
               if(score%75 == 0){
