@@ -99,12 +99,12 @@ int game_over = -1;
 
 int menu_inventaire = 0;
 
+int page_presentation = 1;
+
 
 void setup(){
   size(500,550);
-  
-  
-  
+    
   for (int i = 0; i < 50; i++) {
     arme_principale[i] = new Arme_principale();
   }  
@@ -143,71 +143,78 @@ void setup(){
 
 void draw(){
   background(200); 
+  if(page_presentation == 0){
   
-  affiche_barre_arme_principale();
-  affiche_vie_ville();
-  affiche_inventaire();
-  
-  selectionne_arme_principale();
-  selectionne_arme_grenade();
-  
-  affiche_arme();
-   
-  affiche_meteorite();
-  mv_meteorite();
-  
-  regene_arme_principale();
-  
-  disp_meteorite();
-  orientation_canon_arme_principale();
-  orientation_canon_arme_grenade();
-  
-  tir_arme_principale();
-  tir_arme_grenade();
-  
-  affiche_balle();
-  affiche_grenade();
-  
-  mv_balle();
-  mv_grenade();
-  
-  
-  
-  creation_bouclier();
-  affiche_bouclier();
-  affiche_message();
-  
-  fill(0);
-  textSize(20);
-  text(point,10,20);
-  
-  /*for(int i = 0; i < nb_arme_principale;i++){
-    float x = mouseX - arme_principale[i].x;
-    float y = mouseY - arme_principale[i].y + 1;
+    affiche_barre_arme_principale();
+    affiche_vie_ville();
+    affiche_inventaire();
     
-    if(mouseY <= arme_principale[i].y){
-      arme_principale[i].angle_tir = 360 - atan(x/y) * 180 / PI;
-    }
-    else{
-      arme_principale[i].angle_tir = 180 - atan(x/y) * 180 / PI;  
-    }
+    selectionne_arme_principale();
+    selectionne_arme_grenade();
     
-    line(arme_principale[i].x,arme_principale[i].y,arme_principale[i].x,mouseY);
-    line(arme_principale[i].x,arme_principale[i].y,mouseX,mouseY);
-    line(arme_principale[i].x,mouseY,mouseX,mouseY);
-  }*/
-  
-  
-  if(vie_ville <= 0){
-    println("Vous avez perdu");
-    print("score: ");
-    println(score);
-    if(game_over == -1){
-      game_over = 3;
+    affiche_arme();
+     
+    affiche_meteorite();
+    mv_meteorite();
+    
+    regene_arme_principale();
+    
+    disp_meteorite();
+    orientation_canon_arme_principale();
+    orientation_canon_arme_grenade();
+    
+    tir_arme_principale();
+    tir_arme_grenade();
+    
+    affiche_balle();
+    affiche_grenade();
+    
+    mv_balle();
+    mv_grenade();
+    
+    
+    
+    creation_bouclier();
+    affiche_bouclier();
+    affiche_message();
+    
+    fill(0);
+    textSize(20);
+    text(floor(point),10,20);
+    
+    /*for(int i = 0; i < nb_arme_principale;i++){
+      float x = mouseX - arme_principale[i].x;
+      float y = mouseY - arme_principale[i].y + 1;
+      
+      if(mouseY <= arme_principale[i].y){
+        arme_principale[i].angle_tir = 360 - atan(x/y) * 180 / PI;
+      }
+      else{
+        arme_principale[i].angle_tir = 180 - atan(x/y) * 180 / PI;  
+      }
+      
+      line(arme_principale[i].x,arme_principale[i].y,arme_principale[i].x,mouseY);
+      line(arme_principale[i].x,arme_principale[i].y,mouseX,mouseY);
+      line(arme_principale[i].x,mouseY,mouseX,mouseY);
+    }*/
+    
+    
+    if(vie_ville <= 0){
+      println("Vous avez perdu");
+      print("score: ");
+      println(score);
+      if(game_over == -1){
+        game_over = 3;
+      }
     }
   }
+  else{
+    presentation();    
+    
+    
+  }
   
-  delay(1);
+  
 }
 
 void affiche_inventaire(){
@@ -232,7 +239,7 @@ void affiche_inventaire(){
     
    
     if(mousePressed == true && mouseY > 500){
-      int caseX = mouseX / 100 + 1;
+      int caseX = floor(mouseX / 100 + 1);
       if(caseX == 1){
         menu_inventaire = 1;  
         mousePressed = false;
@@ -332,7 +339,7 @@ void selectionne_arme_principale(){
   if(mousePressed == true){
     if(selection_arme_principale == 0 && mouseY >= 500 && menu_inventaire == 1){
       clique_inventaire = 1;
-      selection_arme_principale = mouseX / 166 + 1;
+      selection_arme_principale = floor(mouseX / 166 + 1);
       if(selection_arme_principale == 1 && point < 30){
         selection_arme_principale = 0;
         message = "Mince!!!, vous n'avez pas assez de sous, détruiser les\nmétéorites pour en gagner ;)";
@@ -431,7 +438,7 @@ void selectionne_arme_grenade(){
   if(mousePressed == true){
     if(selection_arme_grenade == 0 && mouseY >= 500 && menu_inventaire == 2){
       clique_inventaire = 1;
-      selection_arme_grenade = mouseX / 166 + 1;
+      selection_arme_grenade = floor(mouseX / 166 + 1);
       if(selection_arme_grenade == 1 && point < 60){
         selection_arme_grenade = 0;
         message = "Mince!!!, vous n'avez pas assez de sous, détruiser les\nmétéorites pour en gagner ;)";
@@ -1049,7 +1056,7 @@ void creation_bouclier(){
       
       textSize(20);
       fill(0);
-      text("-"+prix,mouseX - 10,bouclier[n_bouclier].y1 - 10);
+      text("-"+floor(prix),mouseX - 10,bouclier[n_bouclier].y1 - 10);
       strokeWeight(7);
       line(bouclier[n_bouclier].x1,bouclier[n_bouclier].y1,mouseX,bouclier[n_bouclier].y1);
       strokeWeight(1);
@@ -1166,5 +1173,71 @@ void affiche_message(){
 
     while(true);  
   }
+  
+}
+
+void presentation(){
+  PImage logo;
+  
+  logo = loadImage("/favicon.png");
+  
+  image(logo,450,500,50,50);
+  
+  fill(0);
+  textSize(50);
+  text("Meteorite Invasion",18,50);
+  
+  textSize(20);
+  text("Cliquer pour commencer a jouer",70,100);
+  
+ if(mousePressed == true){
+   long tmp = millis();
+   while(millis() - tmp < 500);
+   page_presentation = 0;
+   
+ }
+ 
+ float x = mouseX - 250;
+ float y = (mouseY + 50) - 350 + 1;
+  
+ float angle = 0;
+ 
+ if(mouseY <= 350){
+   angle = 360 - atan(x/y) * 180 / PI;
+ }
+ else{
+   angle = 180 - atan(x/y) * 180 / PI;  
+ }
+ 
+ stroke(0);
+   
+ fill(0);
+  
+ pushMatrix();
+ translate(250,350);
+ rotate(PI * angle / 180);
+ rect(-10,0,20,-40);
+ popMatrix();
+  
+  
+ stroke(0);
+ fill(50);
+ rect(250-5,350,10,550-350); 
+ fill(0,255,0);
+    
+ ellipse(250,350,50,50);
+ 
+ fill(255,255,255,50);
+ stroke(0);
+ 
+ rect(50,120,400,150);
+ 
+ textSize(15);
+ fill(0);
+ text("Une equipe de scientifique viens de decouvrir des\nasteroides qui foncent sur la terre. Vous devez\nconstruire des armes pour les détruires.\n\nBonne chance :)",60,150);
+ 
+ 
+ 
+  
   
 }
